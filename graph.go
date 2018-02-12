@@ -46,11 +46,12 @@ func randomPaths(myGraph Graph, pathLength int, ch chan []string, chFinished cha
 
 func main() {
   rand.Seed(time.Now().UnixNano())
+  timeStart := time.Now()
   ourGraph := Graph{
     Name: "thisGraph",
-    TotalNodes: 8,
-    TotalEdges: 10,
-    Nodes: []string{"A", "B", "C", "D", "E", "F", "G"},
+    TotalNodes: 11,
+    TotalEdges: 17,
+    Nodes: []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"},
     LengthEdges: []EdgeLength{
       {[]string{"A", "B"}, 20.0},
       {[]string{"A", "C"}, 32.0},
@@ -62,13 +63,20 @@ func main() {
       {[]string{"F", "G"}, 11.0},
       {[]string{"E", "H"}, 18.0},
       {[]string{"G", "H"}, 15.0},
+      {[]string{"E", "K"}, 11.0},
+      {[]string{"F", "J"}, 18.0},
+      {[]string{"D", "H"}, 15.0},
+      {[]string{"C", "H"}, 15.0},
+      {[]string{"D", "K"}, 11.0},
+      {[]string{"F", "I"}, 18.0},
+      {[]string{"G", "K"}, 15.0},
     },
   }
 
   chPaths := make(chan []string)
   chFinished := make(chan bool)
   lengthOfPaths := 100
-  numPaths := 1000
+  numPaths := 100000
 
   paths := [][]string{}
   for i := 0; i < numPaths; i++ {
@@ -82,7 +90,9 @@ func main() {
       c++
     }
   }
+  elapsed := time.Since(timeStart)
   for _, value := range paths {
     fmt.Println("Path: ", value)
   }
+  fmt.Println("Computation took: ", elapsed)
 }
