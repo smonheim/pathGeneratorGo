@@ -19,14 +19,18 @@ type EdgeLength struct {
   Length float64
 }
 
-func randomPaths(selectedGraph Graph, pathLength int) []string {
+func randomPaths(myGraph Graph, pathLength int, ch chan []string, chFinished chan bool) {
   path := []string{}
   possibleNext := []string{}
-  currentPoint := selectedGraph.Nodes[rand.Intn(len(selectedGraph.Nodes))]
+  currentPoint := myGraph.Nodes[rand.Intn(len(myGraph.Nodes))]
   path = append(path, currentPoint)
+
+  defer func() {
+    chFinished <- true
+  }()
   for i := pathLength; i > 1; i-- {
     possibleNext = possibleNext[:0]
-    for _, value := range selectedGraph.LengthEdges {
+    for _, value := range myGraph.LengthEdges {
       if (value.Nodes[0] == currentPoint) {
         possibleNext = append(possibleNext, value.Nodes[1])
       } else if (value.Nodes[1] == currentPoint) {
@@ -37,7 +41,7 @@ func randomPaths(selectedGraph Graph, pathLength int) []string {
     path = append(path, nextPoint)
     currentPoint = nextPoint
   }
-  return path
+  ch <- path
 }
 
 func main() {
@@ -60,12 +64,23 @@ func main() {
       {[]string{"G", "H"}, 15.0},
     },
   }
-  lengthOfPaths := 5
-  numPaths := 5
-  
+
+  chPaths := make(chan []string)
+  chFinished := make(chan bool)
+  lengthOfPaths := 100
+  numPaths := 1000
+
   paths := [][]string{}
   for i := 0; i < numPaths; i++ {
-    paths = append(paths, randomPaths(ourGraph, lengthOfPaths))
+    go randomPaths(ourGraph, lengthOfPaths, chPaths, chFinished)
+  }
+  for c := 0; c < numPaths; {
+    select {
+    case path := <-chPaths:
+      paths = append(paths, path)
+    case <- chFinished:
+      c++
+    }
   }
   for _, value := range paths {
     fmt.Println("Path: ", value)
